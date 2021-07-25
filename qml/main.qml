@@ -7,9 +7,9 @@ import "controls"
 Window {
     id: mainWindow
     width: 1000
-    height: 580
-    minimumWidth: 800
-    minimumHeight: 500
+    height: 600
+    minimumWidth: 1000
+    minimumHeight: 550
     visible: true
     color: "#00000000"
     title: qsTr("App")
@@ -18,59 +18,36 @@ Window {
     flags: Qt.Window | Qt.FramelessWindowHint
 
     // Propeties
-        property int windowStatus: 0
-        property int windowMargin: 10
-        property int currPage: 0
+    property int windowStatus: 0
+    property int windowMargin: 10
+    property int currPage: 0
+    property int modelUp: 0
 
-        // Text Edit Properties
-        // property alias actualPage: stackView.currentItem
+    // Internal functions
+    QtObject {
+        id: internal
 
-        // Internal functions
-        QtObject{
-            id: internal
+        function resetResizeBorders() {
+            // Resize visibility
+            resizeLeft.visible = true
+            resizeRight.visible = true
+            resizeBottom.visible = true
+            resizeWindow.visible = true
+        }
 
-            function resetResizeBorders(){
+        function maximizeRestore() {
+            if (windowStatus == 0) {
+                mainWindow.showMaximized()
+                windowStatus = 1
+                windowMargin = 0
                 // Resize visibility
-                resizeLeft.visible = true
-                resizeRight.visible = true
-                resizeBottom.visible = true
-                resizeWindow.visible = true
-            }
-
-            function maximizeRestore(){
-                if(windowStatus == 0){
-                    mainWindow.showMaximized()
-                    windowStatus = 1
-                    windowMargin = 0
-                    // Resize visibility
-                    resizeLeft.visible = false
-                    resizeRight.visible = false
-                    resizeBottom.visible = false
-                    resizeWindow.visible = false
-                    maximizeBtn.btnIconSource = "../images/svg_images/restore_icon.svg"
-                }
-                else{
-                    mainWindow.showNormal()
-                    windowStatus = 0
-                    windowMargin = 10
-                    // Resize visibility
-                    internal.resetResizeBorders()
-                    maximizeBtn.btnIconSource = "../images/svg_images/maximize_icon.svg"
-                }
-            }
-
-            function ifMaximizedWindowRestore(){
-                if(windowStatus == 1){
-                    mainWindow.showNormal()
-                    windowStatus = 0
-                    windowMargin = 10
-                    // Resize visibility
-                    internal.resetResizeBorders()
-                    maximizeBtn.btnIconSource = "../images/svg_images/maximize_icon.svg"
-                }
-            }
-
-            function restoreMargins(){
+                resizeLeft.visible = false
+                resizeRight.visible = false
+                resizeBottom.visible = false
+                resizeWindow.visible = false
+                maximizeBtn.btnIconSource = "../images/svg_images/restore_icon.svg"
+            } else {
+                mainWindow.showNormal()
                 windowStatus = 0
                 windowMargin = 10
                 // Resize visibility
@@ -78,6 +55,26 @@ Window {
                 maximizeBtn.btnIconSource = "../images/svg_images/maximize_icon.svg"
             }
         }
+
+        function ifMaximizedWindowRestore() {
+            if (windowStatus == 1) {
+                mainWindow.showNormal()
+                windowStatus = 0
+                windowMargin = 10
+                // Resize visibility
+                internal.resetResizeBorders()
+                maximizeBtn.btnIconSource = "../images/svg_images/maximize_icon.svg"
+            }
+        }
+
+        function restoreMargins() {
+            windowStatus = 0
+            windowMargin = 10
+            // Resize visibility
+            internal.resetResizeBorders()
+            maximizeBtn.btnIconSource = "../images/svg_images/maximize_icon.svg"
+        }
+    }
 
     Rectangle {
         id: bg
@@ -133,7 +130,7 @@ Window {
                     Label {
                         id: labelTopInfo
                         color: "#5f6a82"
-                        text: qsTr("Application Description")
+                        text: qsTr("Tune Neural Models")
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.top: parent.top
@@ -173,10 +170,10 @@ Window {
                     anchors.leftMargin: 70
                     anchors.topMargin: 0
 
-                    DragHandler{
-                        onActiveChanged: if(active){
+                    DragHandler {
+                        onActiveChanged: if (active) {
                                              mainWindow.startSystemMove()
-                                            internal.ifMaximizedWindowRestore()
+                                             internal.ifMaximizedWindowRestore()
                                          }
                     }
 
@@ -194,12 +191,12 @@ Window {
                         fillMode: Image.PreserveAspectFit
                     }
 
-                    ColorOverlay{
-                                        anchors.fill: appIcon
-                                        source: appIcon
-                                        color: "#c3cbdd"
-                                        antialiasing: false
-                                    }
+                    ColorOverlay {
+                        anchors.fill: appIcon
+                        source: appIcon
+                        color: "#c3cbdd"
+                        antialiasing: false
+                    }
 
                     Label {
                         id: labelAppTitle
@@ -226,13 +223,12 @@ Window {
                     anchors.rightMargin: 0
                     anchors.topMargin: 0
 
-                    TopBarBtn{
+                    TopBarBtn {
                         id: minimizeBtn
                         onClicked: {
                             mainWindow.showMinimized()
                             internal.restoreMargins()
                         }
-
                     }
 
                     TopBarBtn {
@@ -271,11 +267,11 @@ Window {
                     anchors.bottomMargin: 0
                     anchors.topMargin: 0
 
-                    PropertyAnimation{
+                    PropertyAnimation {
                         id: leftMenuAnimation
                         target: leftMenu
                         property: "width"
-                        to: (leftMenu.width == 70) ? 200:70
+                        to: (leftMenu.width == 70) ? 170 : 70
                         duration: 650
                         easing.type: Easing.InOutQuint
                     }
@@ -298,34 +294,14 @@ Window {
                             text: "Home"
                             isActiveMenu: true
                             onClicked: {
-                                if(currPage != 0) {
+                                if (currPage != 0) {
                                     currPage = 0
                                     labelTopRightInfo.text = qsTr("Home")
                                     homeBtn.isActiveMenu = true
                                     measurementsBtn.isActiveMenu = false
                                     tuningBtn.isActiveMenu = false
                                     settingsBtn.isActiveMenu = false
-                                    stackView.push(Qt.resolvedUrl("pages/homePage.qml"))
-                                }
-                            }
-
-                        }
-
-                        LeftMenuBtn {
-                            id: measurementsBtn
-                            width: leftMenu.width
-                            text: "Measurements"
-                            btnIconSource: "../images/svg_images/measurements_icon.svg"
-                            isActiveMenu: false
-                            onClicked: {
-                                if(currPage != 1) {
-                                    currPage = 1
-                                    labelTopRightInfo.text = qsTr("Measurements")
-                                    homeBtn.isActiveMenu = false
-                                    measurementsBtn.isActiveMenu = true
-                                    tuningBtn.isActiveMenu = false
-                                    settingsBtn.isActiveMenu = false
-                                    stackView.push(Qt.resolvedUrl("pages/measurementsPage.qml"))
+                                    stackView.replace([stackView.currentItem,stackView.get(5)])
                                 }
                             }
                         }
@@ -334,17 +310,41 @@ Window {
                             id: tuningBtn
                             width: leftMenu.width
                             text: "Tuning"
+                            enabled: false
                             btnIconSource: "../images/svg_images/tuning_icon.svg"
                             isActiveMenu: false
                             onClicked: {
-                                if(currPage != 2) {
+                                if (currPage != 2) {
                                     currPage = 2
                                     labelTopRightInfo.text = qsTr("Tuning")
                                     homeBtn.isActiveMenu = false
                                     measurementsBtn.isActiveMenu = false
                                     tuningBtn.isActiveMenu = true
                                     settingsBtn.isActiveMenu = false
-                                    stackView.push(Qt.resolvedUrl("pages/tuningPage.qml"))
+                                    stackView.replace([stackView.currentItem,stackView.get(3)])
+                                    backend.fetchParam()
+                                    backend.fetchSections()
+                                }
+                            }
+                        }
+
+                        LeftMenuBtn {
+                            id: measurementsBtn
+                            width: leftMenu.width
+                            text: "Result"
+                            enabled: false
+                            btnIconSource: "../images/svg_images/measurements_icon.svg"
+                            isActiveMenu: false
+                            onClicked: {
+                                if (currPage != 1) {
+                                    currPage = 1
+                                    labelTopRightInfo.text = qsTr(
+                                                "Result")
+                                    homeBtn.isActiveMenu = false
+                                    measurementsBtn.isActiveMenu = true
+                                    tuningBtn.isActiveMenu = false
+                                    settingsBtn.isActiveMenu = false
+                                    stackView.replace([stackView.currentItem,stackView.get(1)])
                                 }
                             }
                         }
@@ -361,14 +361,14 @@ Window {
                         isActiveMenu: false
                         anchors.bottomMargin: 25
                         onClicked: {
-                            if(currPage != 3) {
+                            if (currPage != 3) {
                                 currPage = 3
                                 labelTopRightInfo.text = qsTr("Settings")
                                 homeBtn.isActiveMenu = false
                                 measurementsBtn.isActiveMenu = false
                                 tuningBtn.isActiveMenu = false
                                 settingsBtn.isActiveMenu = true
-                                stackView.push(Qt.resolvedUrl("pages/settingsPage.qml"))
+                                stackView.replace([stackView.currentItem,stackView.get(2)])
                             }
                         }
                     }
@@ -390,7 +390,14 @@ Window {
                     StackView {
                         id: stackView
                         anchors.fill: parent
-                        initialItem: Qt.resolvedUrl("pages/homePage.qml")
+                        Component.onCompleted: {
+                            stackView.push(Qt.resolvedUrl("pages/waitingPage.qml"))
+                            stackView.push(Qt.resolvedUrl("pages/resultPage.qml"))
+                            stackView.push(Qt.resolvedUrl("pages/settingsPage.qml"))
+                            stackView.push(Qt.resolvedUrl("pages/tuningPage.qml"))
+                            stackView.push(Qt.resolvedUrl("pages/measurementsPage.qml"))
+                            stackView.push(Qt.resolvedUrl("pages/homePage.qml"))
+                        }
                     }
                 }
 
@@ -409,7 +416,7 @@ Window {
                     Label {
                         id: labelBottomBar
                         color: "#5f6a82"
-                        text: qsTr("Application Description")
+                        text: qsTr("Build: 1.0")
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.top: parent.top
@@ -433,10 +440,11 @@ Window {
                         anchors.rightMargin: 0
                         cursorShape: Qt.SizeFDiagCursor
 
-                        DragHandler{
+                        DragHandler {
                             target: null
-                            onActiveChanged: if (active){
-                                                 mainWindow.startSystemResize(Qt.RightEdge | Qt.BottomEdge)
+                            onActiveChanged: if (active) {
+                                                 mainWindow.startSystemResize(
+                                                             Qt.RightEdge | Qt.BottomEdge)
                                              }
                         }
 
@@ -458,7 +466,7 @@ Window {
             }
         }
     }
-    DropShadow{
+    DropShadow {
         anchors.fill: bg
         horizontalOffset: 0
         verticalOffset: 0
@@ -470,53 +478,82 @@ Window {
     }
 
     MouseArea {
-            id: resizeLeft
-            width: 10
-            anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.leftMargin: 0
-            anchors.bottomMargin: 10
-            anchors.topMargin: 10
-            cursorShape: Qt.SizeHorCursor
+        id: resizeLeft
+        width: 10
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: 0
+        anchors.bottomMargin: 10
+        anchors.topMargin: 10
+        cursorShape: Qt.SizeHorCursor
 
-            DragHandler{
-                target: null
-                onActiveChanged: if (active) { mainWindow.startSystemResize(Qt.LeftEdge) }
-            }
+        DragHandler {
+            target: null
+            onActiveChanged: if (active) {
+                                 mainWindow.startSystemResize(Qt.LeftEdge)
+                             }
+        }
     }
 
     MouseArea {
-            id: resizeRight
-            width: 10
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            anchors.rightMargin: 0
-            anchors.bottomMargin: 10
-            anchors.topMargin: 10
-            cursorShape: Qt.SizeHorCursor
+        id: resizeRight
+        width: 10
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: 0
+        anchors.bottomMargin: 10
+        anchors.topMargin: 10
+        cursorShape: Qt.SizeHorCursor
 
-            DragHandler{
-                target: null
-                onActiveChanged: if (active) { mainWindow.startSystemResize(Qt.RightEdge) }
-            }
+        DragHandler {
+            target: null
+            onActiveChanged: if (active) {
+                                 mainWindow.startSystemResize(Qt.RightEdge)
+                             }
+        }
     }
 
     MouseArea {
-            id: resizeBottom
-            height: 10
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.rightMargin: 10
-            anchors.leftMargin: 10
-            anchors.bottomMargin: 0
-            cursorShape: Qt.SizeVerCursor
+        id: resizeBottom
+        height: 10
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: 10
+        anchors.leftMargin: 10
+        anchors.bottomMargin: 0
+        cursorShape: Qt.SizeVerCursor
 
-            DragHandler{
-                target: null
-                onActiveChanged: if (active) { mainWindow.startSystemResize(Qt.BottomEdge) }
-            }
+        DragHandler {
+            target: null
+            onActiveChanged: if (active) {
+                                 mainWindow.startSystemResize(Qt.BottomEdge)
+                             }
+        }
+    }
+
+    Connections{
+        target: backend
+
+        function onEnableTune() {
+            tuningBtn.enabled = true
+        }
+
+        function onPushRes() {
+            currPage = 1
+            labelTopRightInfo.text = qsTr("Result")
+            homeBtn.isActiveMenu = false
+            measurementsBtn.isActiveMenu = true
+            tuningBtn.isActiveMenu = false
+            settingsBtn.isActiveMenu = false
+            stackView.replace([stackView.currentItem,stackView.get(1)])
+            measurementsBtn.enabled = true
+        }
+
+        function onPushWait() {
+            stackView.replace([stackView.currentItem,stackView.get(0)])
+        }
     }
 }
