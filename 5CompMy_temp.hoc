@@ -1,0 +1,235 @@
+begintemplate fivecompMy
+
+public soma, iseg, dend1, dend2, dend3
+public all, somatic, basal, AHIS
+// load_file("nrngui.hoc")		// Load Neuron
+
+proc init() {
+    topol()
+    createCell()
+    subsets()
+    parameters()
+}
+
+
+
+
+
+// soma
+//------
+create soma, iseg, dend1, dend2, dend3
+proc topol(){
+    connect  iseg(1), soma(0)
+    connect dend1(0), soma(0.5)
+    connect dend2(0), dend1(1)
+    connect dend3(0), dend2(1)
+}
+
+proc createCell(){
+    v_init = -70
+    
+    soma {
+
+        nseg = 1
+        L = 48.8
+        diam = 48.8
+        insert pas      		
+        g_pas= 1/225
+        e_pas= v_init
+
+        Ra = 70          								   				
+        cm = 1          									
+
+        insert NafSmb1		
+        gnabar_NafSmb1 = 0.05			
+        th_NafSmb1 = 40  				
+                            
+        insert KdrSmb1		
+        gkdrbar_KdrSmb1 = 0.5			
+
+        insert CaSmb1         	
+        gkcabar_CaSmb1 = 0.02			
+        gcanbar_CaSmb1= 0.01
+        gcalbar_CaSmb1 = 0
+
+        amA_NafSmb1 = 22 
+        bmA_NafSmb1 = 46 
+        theta_h_NafSmb1 = 47
+        theta_n_KdrSmb1 = 20
+        thetamn_CaSmb1 = 14
+        thetahn_CaSmb1 = 32
+                                
+        f_CaSmb1 = 0.01				
+        alpha_CaSmb1 = 1
+        kca_CaSmb1 = 8
+        kd_CaSmb1 = 0.0005             		
+        nexp_CaSmb1 = 1
+
+        insert hb1				
+        ghbar_hb1 = 0.001/7				
+    }
+
+    // axon hillock
+    //--------------
+
+
+    iseg {
+
+        nseg = 1
+        L = 20
+        diam = 12.94999838
+
+        insert pas      		
+        g_pas= 1/225		
+        e_pas= v_init
+
+        Ra = 70          				 	  				
+        cm = 1          				
+
+        insert hb1			
+        ghbar_hb1 = 0.001/7				
+                    
+        insert NafIsb1		
+        gnabar_NafIsb1 = 1.3392			
+        th_NafIsb1 = 40	   					
+                            
+        insert NapIsb1		
+        gnapbar_NapIsb1 = 3.2971e-5		
+                
+        insert KdrIsb1		
+        gkbar_KdrIsb1 = 0.16552			
+
+        amA_NafIsb1 = 18
+        bmA_NafIsb1 = 38
+        theta_h_NafIsb1 = 47
+        theta_n_KdrIsb1 = 20
+        ampB_NapIsb1 = 30.4
+        bmpB_NapIsb1 = 34.7
+    }
+        
+
+
+    // Dendrites
+    //-----------
+
+    dend1 {
+
+        nseg = 1
+        L = 1625.55
+        diam(0:1) = 41.436:42.492
+        
+
+        insert pas      		
+        g_pas= 1/11000
+        e_pas= v_init
+
+        Ra = 70          							
+        cm = 1          				
+
+        insert hb1			
+        ghbar_hb1 = 0.002/7				
+
+    }
+
+
+    dend2 {
+
+
+        L = 1581.58
+        diam(0:1) = 42.492:34.303
+        nseg = 1
+    
+
+        insert pas      		
+        g_pas= 1/11000
+        e_pas= v_init
+
+        Ra = 70          							
+        cm = 1          				
+
+        insert hb1			
+        ghbar_hb1 = 0.002/7				
+
+        insert Llvab1
+        gcaLlvabar_Llvab1 = 0.00016						
+        theta_m_Llvab1 = -43
+        tau_m_Llvab1 = 60
+        kappa_m_Llvab1 = -6
+    }
+
+
+
+    dend3 {
+
+        L = 3587.98
+        diam(0:1) = 34.303:0.53
+        nseg = 1
+        
+
+        insert pas      		
+        g_pas= 1/11000
+        e_pas= v_init
+
+        Ra = 70          				 				
+        cm = 1          				
+
+        insert hb1			
+        ghbar_hb1 = 0.002/7				
+
+    }
+    print "5 compartment cell created"
+}
+
+objref all, somatic, basal , AHIS
+proc subsets() {
+    objref all, somatic, basal , AHIS
+    all = new SectionList()
+    soma all.append()
+	iseg all.append()
+    dend1 all.append()
+    dend2 all.append()
+    dend3 all.append()
+
+    somatic = new SectionList()
+    soma somatic.append()
+
+    basal = new SectionList()
+    dend1 basal.append()
+    dend2 basal.append()
+    dend3 basal.append()
+
+    AHIS = new SectionList()
+    iseg AHIS.append()
+
+}
+
+proc parameters() {
+	celsius = 36			            // Temperature at which simulations are performed
+	                		// mV, resting membrane potential
+}
+
+
+
+
+proc uninsert_Active_channels() {
+    soma {
+        uninsert NafSmb1
+        uninsert KdrSmb1
+        uninsert CaSmb1
+        uninsert hb1
+    }
+    iseg {
+        uninsert hb1
+        uninsert NafIsb1
+        uninsert NapIsb1
+        uninsert KdrIsb1
+    }
+    forsec "basal" {
+        uninsert hb1
+        uninsert Llvab1
+    }
+    print "Active channels has been removed from Soma , iseg , ah sections"
+}//  End of Procedure
+
+
+endtemplate fivecompMy
